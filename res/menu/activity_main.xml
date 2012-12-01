@@ -1,0 +1,23 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    
+   	<item 
+   	    android:id="@+id/done" 
+   	    android:title="@string/save" 
+   	    android:titleCondensed="@string/save" 
+   	    android:menuCategory="system" 
+   	    android:visible="true" 
+   	    android:enabled="true" 
+   	    android:showAsAction="ifRoom|withText" 
+   	    android:orderInCategory="1" android:icon="@drawable/ic_action_done">
+   	</item>
+    <item android:id="@+id/undo" 
+        android:title="@android:string/cancel" 
+        android:titleCondensed="@android:string/cancel" 
+        android:visible="true" 
+        android:enabled="true" 
+        android:showAsAction="ifRoom|withText" 
+        android:orderInCategory="2" 
+        android:icon="@drawable/ic_action_cancel"></item><item android:id="@+id/menu_settings" android:orderInCategory="100" android:showAsAction="never" android:title="@string/menu_settings" />
+
+</menu>
