@@ -2,6 +2,7 @@ package com.smokybob.NoteToGDocs;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -39,10 +40,15 @@ public class SettingsActivity extends PreferenceActivity {
 	 * shown on tablets.
 	 */
 	private static final boolean ALWAYS_SIMPLE_PREFS = false;
+	private SharedPreferences sharedPref ;
 
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
+		//Load the shared context prefs
+		Context context = this;
+		sharedPref = context.getSharedPreferences(
+		        getString(R.string.pref_file_key), Context.MODE_PRIVATE);
 
 		setupSimplePreferencesScreen();
 	}
@@ -64,24 +70,24 @@ public class SettingsActivity extends PreferenceActivity {
 		addPreferencesFromResource(R.xml.pref_general);
 
 		// Add 'notifications' preferences, and a corresponding header.
-		PreferenceCategory fakeHeader = new PreferenceCategory(this);
-		fakeHeader.setTitle(R.string.pref_header_notifications);
-		getPreferenceScreen().addPreference(fakeHeader);
-		addPreferencesFromResource(R.xml.pref_notification);
+//		PreferenceCategory fakeHeader = new PreferenceCategory(this);
+//		fakeHeader.setTitle(R.string.pref_header_notifications);
+//		getPreferenceScreen().addPreference(fakeHeader);
+//		addPreferencesFromResource(R.xml.pref_notification);
 
 		// Add 'data and sync' preferences, and a corresponding header.
-		fakeHeader = new PreferenceCategory(this);
-		fakeHeader.setTitle(R.string.pref_header_data_sync);
-		getPreferenceScreen().addPreference(fakeHeader);
-		addPreferencesFromResource(R.xml.pref_data_sync);
+//		fakeHeader = new PreferenceCategory(this);
+//		fakeHeader.setTitle(R.string.pref_header_data_sync);
+//		getPreferenceScreen().addPreference(fakeHeader);
+//		addPreferencesFromResource(R.xml.pref_data_sync);
 
 		// Bind the summaries of EditText/List/Dialog/Ringtone preferences to
 		// their values. When their values change, their summaries are updated
 		// to reflect the new value, per the Android Design guidelines.
-		bindPreferenceSummaryToValue(findPreference("example_text"));
-		bindPreferenceSummaryToValue(findPreference("example_list"));
-		bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
-		bindPreferenceSummaryToValue(findPreference("sync_frequency"));
+		bindPreferenceSummaryToValue(findPreference("accounts_list"));
+//		bindPreferenceSummaryToValue(findPreference("example_list"));
+//		bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
+//		bindPreferenceSummaryToValue(findPreference("sync_frequency"));
 	}
 
 	/** {@inheritDoc} */
@@ -140,28 +146,28 @@ public class SettingsActivity extends PreferenceActivity {
 						.setSummary(index >= 0 ? listPreference.getEntries()[index]
 								: null);
 
-			} else if (preference instanceof RingtonePreference) {
-				// For ringtone preferences, look up the correct display value
-				// using RingtoneManager.
-				if (TextUtils.isEmpty(stringValue)) {
-					// Empty values correspond to 'silent' (no ringtone).
-					preference.setSummary(R.string.pref_ringtone_silent);
-
-				} else {
-					Ringtone ringtone = RingtoneManager.getRingtone(
-							preference.getContext(), Uri.parse(stringValue));
-
-					if (ringtone == null) {
-						// Clear the summary if there was a lookup error.
-						preference.setSummary(null);
-					} else {
-						// Set the summary to reflect the new ringtone display
-						// name.
-						String name = ringtone
-								.getTitle(preference.getContext());
-						preference.setSummary(name);
-					}
-				}
+//			} else if (preference instanceof RingtonePreference) {
+//				// For ringtone preferences, look up the correct display value
+//				// using RingtoneManager.
+//				if (TextUtils.isEmpty(stringValue)) {
+//					// Empty values correspond to 'silent' (no ringtone).
+//					preference.setSummary(R.string.pref_ringtone_silent);
+//
+//				} else {
+//					Ringtone ringtone = RingtoneManager.getRingtone(
+//							preference.getContext(), Uri.parse(stringValue));
+//
+//					if (ringtone == null) {
+//						// Clear the summary if there was a lookup error.
+//						preference.setSummary(null);
+//					} else {
+//						// Set the summary to reflect the new ringtone display
+//						// name.
+//						String name = ringtone
+//								.getTitle(preference.getContext());
+//						preference.setSummary(name);
+//					}
+//				}
 
 			} else {
 				// For all other preferences, set the summary to the value's
@@ -210,8 +216,8 @@ public class SettingsActivity extends PreferenceActivity {
 			// to their values. When their values change, their summaries are
 			// updated to reflect the new value, per the Android Design
 			// guidelines.
-			bindPreferenceSummaryToValue(findPreference("example_text"));
-			bindPreferenceSummaryToValue(findPreference("example_list"));
+//			bindPreferenceSummaryToValue(findPreference("example_text"));
+			bindPreferenceSummaryToValue(findPreference("accounts_list"));
 		}
 	}
 
@@ -219,40 +225,40 @@ public class SettingsActivity extends PreferenceActivity {
 	 * This fragment shows notification preferences only. It is used when the
 	 * activity is showing a two-pane settings UI.
 	 */
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public static class NotificationPreferenceFragment extends
-			PreferenceFragment {
-		@Override
-		public void onCreate(Bundle savedInstanceState) {
-			super.onCreate(savedInstanceState);
-			addPreferencesFromResource(R.xml.pref_notification);
-
-			// Bind the summaries of EditText/List/Dialog/Ringtone preferences
-			// to their values. When their values change, their summaries are
-			// updated to reflect the new value, per the Android Design
-			// guidelines.
-			bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
-		}
-	}
-
-	/**
-	 * This fragment shows data and sync preferences only. It is used when the
-	 * activity is showing a two-pane settings UI.
-	 */
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public static class DataSyncPreferenceFragment extends PreferenceFragment {
-		@Override
-		public void onCreate(Bundle savedInstanceState) {
-			super.onCreate(savedInstanceState);
-			addPreferencesFromResource(R.xml.pref_data_sync);
-
-			// Bind the summaries of EditText/List/Dialog/Ringtone preferences
-			// to their values. When their values change, their summaries are
-			// updated to reflect the new value, per the Android Design
-			// guidelines.
-			bindPreferenceSummaryToValue(findPreference("sync_frequency"));
-		}
-	}
+//	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+//	public static class NotificationPreferenceFragment extends
+//			PreferenceFragment {
+//		@Override
+//		public void onCreate(Bundle savedInstanceState) {
+//			super.onCreate(savedInstanceState);
+//			addPreferencesFromResource(R.xml.pref_notification);
+//
+//			// Bind the summaries of EditText/List/Dialog/Ringtone preferences
+//			// to their values. When their values change, their summaries are
+//			// updated to reflect the new value, per the Android Design
+//			// guidelines.
+//			bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
+//		}
+//	}
+//
+//	/**
+//	 * This fragment shows data and sync preferences only. It is used when the
+//	 * activity is showing a two-pane settings UI.
+//	 */
+//	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+//	public static class DataSyncPreferenceFragment extends PreferenceFragment {
+//		@Override
+//		public void onCreate(Bundle savedInstanceState) {
+//			super.onCreate(savedInstanceState);
+//			addPreferencesFromResource(R.xml.pref_data_sync);
+//
+//			// Bind the summaries of EditText/List/Dialog/Ringtone preferences
+//			// to their values. When their values change, their summaries are
+//			// updated to reflect the new value, per the Android Design
+//			// guidelines.
+//			bindPreferenceSummaryToValue(findPreference("sync_frequency"));
+//		}
+//	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		//TODO - MSO - 20121128 - Create back from settings

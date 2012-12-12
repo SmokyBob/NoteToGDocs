@@ -7,7 +7,8 @@
     <uses-sdk
         android:minSdkVersion="11"
         android:targetSdkVersion="16" />
-    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -21,12 +22,18 @@
         </activity>
         <activity
             android:name="com.smokybob.NoteToGDocs.MainActivity"
-            android:label="@string/title_activity_main" 
-            android:launchMode="standard">
+            android:label="@string/title_activity_main"
+            android:launchMode="standard" >
             <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.smokybob.NoteToGDocs.EntryActivity"
+            android:label="@string/title_activity_entry" >
+            
         </activity>
     </application>
 

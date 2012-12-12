@@ -26,6 +26,7 @@ public class MainActivity extends Activity {
 	private GoogleAccountCredential credential;
 	
 	
+	
 
 	private void checkCredential() {
 		GoogleAccountCredential _credential;
