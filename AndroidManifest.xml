@@ -24,7 +24,9 @@
         <activity
             android:name="com.smokybob.NoteToGDocs.MainActivity"
             android:label="@string/title_activity_main"
-            android:launchMode="standard" >
+            android:windowSoftInputMode="stateVisible|adjustPan"
+            android:launchMode="standard" 
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

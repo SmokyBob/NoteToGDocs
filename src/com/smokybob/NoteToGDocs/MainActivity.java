@@ -5,6 +5,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
@@ -27,6 +28,8 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
+import android.util.AndroidException;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
@@ -42,6 +45,7 @@ public class MainActivity extends Activity {
 	public static final String PREFS_NAME = "MyPrefsFile";
 	/** text/plain MIME type. */
 	private static final String SOURCE_MIME = "text/plain";
+	private boolean isSaved=true;
 
 	
 
@@ -104,6 +108,7 @@ public class MainActivity extends Activity {
 					// Commit the edits!
 					editor.commit();
 					setContentView(R.layout.activity_main);
+					isSaved=false;
 				}
 			}
 			break;
@@ -124,12 +129,15 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		//FIXME quando vado nei settings questa proprietà proc viene chiamata, sistemare
-		EditText editText1 = (EditText) findViewById(R.id.editText1);
-		String content = editText1.getText().toString();
-		//Check text Input and if present upload the document
-		if (content.length()>0)
-			UploadNote();
+		try{
+			//FIXME quando vado nei settings questa proprietà proc viene chiamata, sistemare
+			//Check I've already saved the data
+			if (!isSaved)
+				UploadNote();
+		}catch (Exception ex){
+			Log.v("Smokybob", ex.getStackTrace().toString());
+		}
+		
 	}
 	
 	
@@ -170,19 +178,17 @@ public class MainActivity extends Activity {
 
 					//TODO: Use string resources for different languages support
 					createNotification(fileTitle, "File Uploaded", insertedFile.getId());
-					//Cleat and Close the application
-					editText1.setText("");//ClearNote Can't be used as it generate an exception because this code is in another thread
+					isSaved=true;
 					finish();
 				} catch (UserRecoverableAuthIOException e) {
 					startActivityForResult(e.getIntent(), REQUEST_AUTHORIZATION);
 				} catch (IOException e) {
-					e.printStackTrace();
+					Log.v("Smokybob", e.getStackTrace().toString());
 					createNotification(fileTitle, "File Upload error", "");
 				}
 			}
 		});
 		t.start();
-
 	}
 
 	private Drive getDriveService(GoogleAccountCredential credential) {
@@ -250,6 +256,7 @@ public class MainActivity extends Activity {
 			credential.setSelectedAccountName(accountName);
 			service = getDriveService(credential);
 			setContentView(R.layout.activity_main);
+			isSaved=false;
 		}
 		else
 		{
