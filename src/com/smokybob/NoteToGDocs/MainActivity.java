@@ -5,7 +5,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
@@ -70,7 +69,8 @@ public class MainActivity extends Activity {
 		boolean toRet =false;
 		switch (item.getItemId()) {
 		case R.id.done:
-			UploadNote();
+			if (!isSaved)
+				UploadNote();
 			toRet= true;
 			break;
 		case R.id.undo:
@@ -114,8 +114,10 @@ public class MainActivity extends Activity {
 			break;
 		case REQUEST_AUTHORIZATION:
 			if (resultCode == Activity.RESULT_OK) {
+				isSaved=false;
 				UploadNote();
 			} else {
+				isSaved=true;
 				startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
 			}
 			break;
@@ -149,6 +151,7 @@ public class MainActivity extends Activity {
 	}
 
 	private void UploadNote(){
+		isSaved=true;
 		//Async Thread to Save the Note
 		Thread t = new Thread(new Runnable() {
 			@Override
@@ -163,6 +166,7 @@ public class MainActivity extends Activity {
 				EditText editText1 = (EditText) findViewById(R.id.editText1);
 				String content = editText1.getText().toString();
 
+			
 				try {
 					File insertedFile = null;
 					//Upload the file
@@ -178,11 +182,12 @@ public class MainActivity extends Activity {
 
 					//TODO: Use string resources for different languages support
 					createNotification(fileTitle, "File Uploaded", insertedFile.getId());
-					isSaved=true;
+					
 					finish();
 				} catch (UserRecoverableAuthIOException e) {
 					startActivityForResult(e.getIntent(), REQUEST_AUTHORIZATION);
 				} catch (IOException e) {
+					isSaved=false;
 					Log.v("Smokybob", e.getStackTrace().toString());
 					createNotification(fileTitle, "File Upload error", "");
 				}
