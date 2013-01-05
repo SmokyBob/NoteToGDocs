@@ -170,20 +170,18 @@ public class MainActivity extends Activity {
 				try {
 					File insertedFile = null;
 					//Upload the file
-					if (content != null && content.length() > 0) {
+					if (content != null && content.trim().length() > 0) {
 						Insert fileRequest = service.files()
 								.insert(newFile, ByteArrayContent.fromString(SOURCE_MIME, content));
 						//Auto Convert to Google Docs
 						fileRequest.setConvert(true);
 						insertedFile = fileRequest.execute();
-					} else {
-						insertedFile = service.files().insert(newFile).execute();
+						//TODO: Use string resources for different languages support
+						createNotification(fileTitle, "File Uploaded", insertedFile.getId());
+						
+						finish();
 					}
-
-					//TODO: Use string resources for different languages support
-					createNotification(fileTitle, "File Uploaded", insertedFile.getId());
 					
-					finish();
 				} catch (UserRecoverableAuthIOException e) {
 					startActivityForResult(e.getIntent(), REQUEST_AUTHORIZATION);
 				} catch (IOException e) {
