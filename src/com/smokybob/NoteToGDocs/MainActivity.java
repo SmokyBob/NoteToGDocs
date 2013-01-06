@@ -18,12 +18,14 @@ import com.google.api.services.drive.model.File;
 import com.smokybob.NoteToGDocs.R;
 
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
@@ -45,8 +47,10 @@ public class MainActivity extends Activity {
 	/** text/plain MIME type. */
 	private static final String SOURCE_MIME = "text/plain";
 	private boolean isSaved=true;
+	private NotificationManager mNotifyMgr;
 
-	
+	ProgressDialog pd;
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -79,16 +83,16 @@ public class MainActivity extends Activity {
 
 			toRet= true;
 			break;
-//		case R.id.menu_settings:
-//			//FIXME: Enable Account Selection and other configurations
-//			// https://code.google.com/p/google-drive-sdk-samples/source/browse/android/src/com/example/android/notepad/Preferences.java
-//			//Open Settings Activity
-//			Intent settings = new Intent(this,SettingsActivity.class);
-//			startActivity(settings);
-//			toRet=true;
-//			//        default:
-//			//            return super.onOptionsItemSelected(item);
-//			break;
+			//		case R.id.menu_settings:
+			//			//FIXME: Enable Account Selection and other configurations
+			//			// https://code.google.com/p/google-drive-sdk-samples/source/browse/android/src/com/example/android/notepad/Preferences.java
+			//			//Open Settings Activity
+			//			Intent settings = new Intent(this,SettingsActivity.class);
+			//			startActivity(settings);
+			//			toRet=true;
+			//			//        default:
+			//			//            return super.onOptionsItemSelected(item);
+			//			break;
 		}
 		return toRet;
 	}
@@ -121,77 +125,35 @@ public class MainActivity extends Activity {
 				startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
 			}
 			break;
-			//	    case CAPTURE_IMAGE:
-			//	      if (resultCode == Activity.RESULT_OK) {
-			//	    	  UploadNote();
-			//	      }
 		}
 	}
-	
+
+
 	@Override
-	protected void onPause() {
-		super.onPause();
+	public void onBackPressed() {
+		super.onBackPressed();
 		try{
-			//FIXME quando vado nei settings questa proprietà proc viene chiamata, sistemare
 			//Check I've already saved the data
 			if (!isSaved)
+			{
 				UploadNote();
+			}
 		}catch (Exception ex){
 			Log.v("Smokybob", ex.getStackTrace().toString());
 		}
-		
 	}
-	
-	
 
 	private void ClearNote(){
 		//MSO - 20121127 - Clean the text
 		EditText editText1 = (EditText) findViewById(R.id.editText1);
 		editText1.setText("");
 	}
-
-	private void UploadNote(){
-		isSaved=true;
-		//Async Thread to Save the Note
-		Thread t = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				File newFile = new File();
-
-				//Generate Title
-				String fileTitle = getFileName();
-				//Set File Info and text
-				newFile.setTitle(fileTitle);
-				newFile.setMimeType(SOURCE_MIME);
-				EditText editText1 = (EditText) findViewById(R.id.editText1);
-				String content = editText1.getText().toString();
-
-			
-				try {
-					File insertedFile = null;
-					//Upload the file
-					if (content != null && content.trim().length() > 0) {
-						Insert fileRequest = service.files()
-								.insert(newFile, ByteArrayContent.fromString(SOURCE_MIME, content));
-						//Auto Convert to Google Docs
-						fileRequest.setConvert(true);
-						insertedFile = fileRequest.execute();
-						//TODO: Use string resources for different languages support
-						createNotification(fileTitle, "File Uploaded", insertedFile.getId());
-						
-						finish();
-					}
-					
-				} catch (UserRecoverableAuthIOException e) {
-					startActivityForResult(e.getIntent(), REQUEST_AUTHORIZATION);
-				} catch (IOException e) {
-					isSaved=false;
-					Log.v("Smokybob", e.getStackTrace().toString());
-					createNotification(fileTitle, "File Upload error", "");
-				}
-			}
-		});
-		t.start();
+	private void UploadNote()
+	{
+		//Show the progress Dialog
+		pd = ProgressDialog.show(MainActivity.this,"Note Upload In Progress","Please Wait...",true,false,null);
+		EditText editText1 = (EditText) findViewById(R.id.editText1);
+		new UploadNoteTask().execute(editText1.getText().toString());
 	}
 
 	private Drive getDriveService(GoogleAccountCredential credential) {
@@ -200,6 +162,12 @@ public class MainActivity extends Activity {
 	}
 
 	private void createNotification(String title, String messageText, String fileId) {
+		// Gets an instance of the NotificationManager service
+		if (mNotifyMgr==null){
+			mNotifyMgr = 
+					(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		}
+
 		NotificationCompat.Builder mBuilder =
 				new NotificationCompat.Builder(this)
 		.setSmallIcon(R.drawable.ic_launcher)
@@ -227,13 +195,29 @@ public class MainActivity extends Activity {
 			mBuilder.setContentIntent(resultPendingIntent);
 		}
 
-		// Sets an ID for the notification
-		int mNotificationId = 001;
-		// Gets an instance of the NotificationManager service
-		NotificationManager mNotifyMgr = 
-				(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		// get the last notification ID from the shared preferences
+		
+		int iNotificationCnt;
+		
+		iNotificationCnt=settings.getInt("notificationID", 1);
+		
 		// Builds the notification and issues it.
-		mNotifyMgr.notify(mNotificationId, mBuilder.build());
+		mNotifyMgr.notify(iNotificationCnt, mBuilder.build());
+		
+		//Increase the notificationID
+		iNotificationCnt++;
+		
+		//If over 1000 Reset to 1
+		if (iNotificationCnt>1000){
+			iNotificationCnt=1;
+		}
+		
+		//Save the notification ID
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putInt("notificationID", iNotificationCnt);
+		// Commit the edits!
+		editor.commit();
+		
 	}
 
 	private String getFileName(){
@@ -247,10 +231,10 @@ public class MainActivity extends Activity {
 		// Using DateFormat format method we can create a string 
 		// representation of a date with the defined format.
 		toRet = df.format(today)+"_Note";
-		
+
 		return toRet;
 	}
-	
+
 	private void checkCredential() {
 		//Try to get Account Name from previous selection
 		String accountName = settings.getString("accountName", "");
@@ -267,4 +251,61 @@ public class MainActivity extends Activity {
 			startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
 		}
 	}
+
+	private class UploadNoteTask extends AsyncTask<String , Integer, Boolean> {
+
+		@Override
+		protected Boolean doInBackground(String... content) {
+			File newFile = new File();
+
+			//Generate Title
+			String fileTitle = getFileName();
+			//Set File Info and text
+			newFile.setTitle(fileTitle);
+			newFile.setMimeType(SOURCE_MIME);
+
+
+			try {
+				File insertedFile = null;
+				//Upload the file
+				if (content != null && content[0].trim().length() > 0) {
+					Insert fileRequest = service.files()
+							.insert(newFile, ByteArrayContent.fromString(SOURCE_MIME, content[0]));
+					//Auto Convert to Google Docs
+					fileRequest.setConvert(true);
+					insertedFile = fileRequest.execute();
+					//TODO: Use string resources for different languages support
+					createNotification(fileTitle, "File Uploaded", insertedFile.getId());
+
+					isSaved=true;
+				}
+
+			} catch (UserRecoverableAuthIOException e) {
+				startActivityForResult(e.getIntent(), REQUEST_AUTHORIZATION);
+			} catch (IOException e) {
+				isSaved=false;
+				Log.v("Smokybob", e.getStackTrace().toString());
+				createNotification(fileTitle, "File Upload error", "");
+			}
+			return isSaved;
+		}
+
+		@Override
+		protected void onPostExecute(Boolean result) {
+			// TODO Auto-generated method stub
+			super.onPostExecute(result);
+			//Dismiss the notification if exists
+			if (pd!=null){
+				pd.dismiss();
+			}
+			if (result)
+				//Force the back button call to "close" the app
+				onBackPressed();
+
+		}
+
+	}
+
+
 }
+
