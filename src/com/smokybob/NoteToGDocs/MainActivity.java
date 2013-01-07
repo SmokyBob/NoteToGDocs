@@ -47,6 +47,7 @@ public class MainActivity extends Activity {
 	/** text/plain MIME type. */
 	private static final String SOURCE_MIME = "text/plain";
 	private boolean isSaved=true;
+	private boolean bFromBack=false;
 	private NotificationManager mNotifyMgr;
 
 	ProgressDialog pd;
@@ -132,6 +133,7 @@ public class MainActivity extends Activity {
 	@Override
 	public void onBackPressed() {
 		super.onBackPressed();
+		bFromBack=true;
 		try{
 			//Check I've already saved the data
 			if (!isSaved)
@@ -196,28 +198,28 @@ public class MainActivity extends Activity {
 		}
 
 		// get the last notification ID from the shared preferences
-		
+
 		int iNotificationCnt;
-		
+
 		iNotificationCnt=settings.getInt("notificationID", 1);
-		
+
 		// Builds the notification and issues it.
 		mNotifyMgr.notify(iNotificationCnt, mBuilder.build());
-		
+
 		//Increase the notificationID
 		iNotificationCnt++;
-		
+
 		//If over 1000 Reset to 1
 		if (iNotificationCnt>1000){
 			iNotificationCnt=1;
 		}
-		
+
 		//Save the notification ID
 		SharedPreferences.Editor editor = settings.edit();
 		editor.putInt("notificationID", iNotificationCnt);
 		// Commit the edits!
 		editor.commit();
-		
+
 	}
 
 	private String getFileName(){
@@ -292,13 +294,16 @@ public class MainActivity extends Activity {
 
 		@Override
 		protected void onPostExecute(Boolean result) {
-			// TODO Auto-generated method stub
 			super.onPostExecute(result);
 			//Dismiss the notification if exists
-			if (pd!=null){
-				pd.dismiss();
+			if (pd!=null && pd.isShowing()){
+				try{
+					pd.dismiss();
+				} catch(IllegalArgumentException ex){
+					//This exception is thrown when the back button is pressed so the dialog is not really there
+				}
 			}
-			if (result)
+			if (result && !bFromBack)
 				//Force the back button call to "close" the app
 				onBackPressed();
 
