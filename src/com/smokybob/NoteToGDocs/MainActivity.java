@@ -42,7 +42,7 @@ public class MainActivity extends Activity {
 	private static Drive service;
 	private GoogleAccountCredential credential;
 	private SharedPreferences settings;
-	public static final String PREFS_NAME = "MyPrefsFile";
+	
 	/** text/plain MIME type. */
 	private static final String SOURCE_MIME = "text/plain";
 	private boolean isSaved=true;
@@ -56,7 +56,7 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		// Restore preferences
-		settings = getSharedPreferences(PREFS_NAME, 0);
+		settings = getSharedPreferences(getString( R.string.pref_file_key), 0);
 		//Check the Credentials
 		checkCredential();
 	}

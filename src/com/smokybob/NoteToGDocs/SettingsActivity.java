@@ -39,7 +39,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 	private ListPreference mSyncPreference;
 	private SharedPreferences mPreferences;
 	private int mState;
-	public static final String PREFS_NAME = "MyPrefsFile";
+	
 	/**
 	 * Populate the activity with the top-level headers.
 	 */
@@ -63,7 +63,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 
 		mAccountManager = new GoogleAccountManager(getActivity());
 //		mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-		mPreferences =getSharedPreferences(PREFS_NAME, 0);
+		mPreferences =getSharedPreferences(getString( R.string.pref_file_key), 0);
 
 		// Load the preferences from an XML resource
 		addPreferencesFromResource(R.layout.preferences_screen);
