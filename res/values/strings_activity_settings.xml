@@ -1,7 +1,6 @@
 <resources>
 
     <!-- Strings related to Settings -->
- <string name="app_name">DrEdit</string>
     <string name="live_folder_name">Notes</string>
 
     <string name="title_edit_title">Note title:</string>
