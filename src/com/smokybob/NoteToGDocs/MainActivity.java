@@ -29,7 +29,6 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
-import android.util.AndroidException;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -84,16 +83,16 @@ public class MainActivity extends Activity {
 
 			toRet= true;
 			break;
-			//		case R.id.menu_settings:
-			//			//FIXME: Enable Account Selection and other configurations
-			//			// https://code.google.com/p/google-drive-sdk-samples/source/browse/android/src/com/example/android/notepad/Preferences.java
-			//			//Open Settings Activity
-			//			Intent settings = new Intent(this,SettingsActivity.class);
-			//			startActivity(settings);
-			//			toRet=true;
-			//			//        default:
-			//			//            return super.onOptionsItemSelected(item);
-			//			break;
+		case R.id.menu_settings:
+			//FIXME: Enable Account Selection and other configurations
+			// https://code.google.com/p/google-drive-sdk-samples/source/browse/android/src/com/example/android/notepad/Preferences.java
+			//Open Settings Activity
+			Intent settings = new Intent(this,SettingsActivity.class);
+			startActivity(settings);
+			toRet=true;
+			//        default:
+			//            return super.onOptionsItemSelected(item);
+			break;
 		}
 		return toRet;
 	}
@@ -141,7 +140,7 @@ public class MainActivity extends Activity {
 				UploadNote();
 			}
 		}catch (Exception ex){
-			Log.v("Smokybob", ex.getStackTrace().toString());
+			Log.e("Smokybob", ex.getStackTrace().toString());
 		}
 	}
 
@@ -286,7 +285,7 @@ public class MainActivity extends Activity {
 				startActivityForResult(e.getIntent(), REQUEST_AUTHORIZATION);
 			} catch (IOException e) {
 				isSaved=false;
-				Log.v("Smokybob", e.getStackTrace().toString());
+				Log.e("Smokybob", e.getStackTrace().toString());
 				createNotification(fileTitle, "File Upload error", "");
 			}
 			return isSaved;
