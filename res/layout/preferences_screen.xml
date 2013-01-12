@@ -7,12 +7,9 @@
   <Preference 
     android:key="selected_account_preference"
     android:title="@string/selected_account" />
-<!-- <ListPreference 
-    android:key="sync_frequency_preference" 
-    android:title="@string/title_sync_frequency"
-    android:entries="@array/sync_frequency_labels"
-    android:entryValues="@array/sync_frequency_values"
-    android:defaultValue="@string/sync_frequency_default_value"
-    android:summary="Sync every %s" /> -->
-  
+ <Preference 
+    android:key="note_folder_preference" 
+    android:title="@string/note_folder_title"
+    android:summary="Notes Stored in %s Folder" />
+
 </PreferenceScreen>

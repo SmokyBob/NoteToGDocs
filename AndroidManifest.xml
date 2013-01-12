@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.smokybob.NoteToGDocs"
-    android:versionCode="5"
-    android:versionName="1.0.3.1" >
+    android:versionCode="6"
+    android:versionName="1.0.4" >
 
     <uses-sdk
         android:minSdkVersion="8"
@@ -24,15 +24,31 @@
         <activity
             android:name="com.smokybob.NoteToGDocs.MainActivity"
             android:label="@string/title_activity_main"
-            android:windowSoftInputMode="stateVisible|adjustPan"
-            android:launchMode="standard" 
-            >
+            android:launchMode="standard"
+            android:windowSoftInputMode="stateVisible|adjustPan" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="com.sec.android.support.multiwindow"
+            android:value="true" />
+        <meta-data
+            android:name="com.sec.android.multiwindow.DEFAULT_SIZE_W"
+            android:value="632.0dip" />
+        <meta-data
+            android:name="com.sec.android.multiwindow.DEFAULT_SIZE_H"
+            android:value="598.0dip" />
+        <meta-data
+            android:name="com.sec.android.multiwindow.MINIMUM_SIZE_W"
+            android:value="632.0dip" />
+        <meta-data
+            android:name="com.sec.android.multiwindow.MINIMUM_SIZE_H"
+            android:value="598.0dip" />
     </application>
 
 </manifest>

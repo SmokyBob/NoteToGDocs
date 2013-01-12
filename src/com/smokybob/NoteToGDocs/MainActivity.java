@@ -3,8 +3,10 @@ package com.smokybob.NoteToGDocs;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
@@ -15,6 +17,7 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.Drive.Files.Insert;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
+import com.google.api.services.drive.model.ParentReference;
 import com.smokybob.NoteToGDocs.R;
 
 import android.net.Uri;
@@ -42,23 +45,35 @@ public class MainActivity extends Activity {
 	private static Drive service;
 	private GoogleAccountCredential credential;
 	private SharedPreferences settings;
-	
+
 	/** text/plain MIME type. */
 	private static final String SOURCE_MIME = "text/plain";
 	private boolean isSaved=true;
 	private boolean bFromBack=false;
 	private NotificationManager mNotifyMgr;
+	private String folderId;
 
-	ProgressDialog pd;
+	private ProgressDialog pd;
 
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+		//Load/reload preferences n
 		// Restore preferences
 		settings = getSharedPreferences(getString( R.string.pref_file_key), 0);
 		//Check the Credentials
 		checkCredential();
+
+		//Get the folder Id
+		folderId= settings.getString("note_folder_id","root");
+
 	}
 
 	@Override
@@ -264,17 +279,24 @@ public class MainActivity extends Activity {
 			//Set File Info and text
 			newFile.setTitle(fileTitle);
 			newFile.setMimeType(SOURCE_MIME);
+			if (folderId!="root"){
+				//Set the parent Folder
+				newFile.setParents(Arrays.asList(new ParentReference().setId(folderId)));
+			}
 
 
 			try {
 				File insertedFile = null;
 				//Upload the file
 				if (content != null && content[0].trim().length() > 0) {
+
 					Insert fileRequest = service.files()
 							.insert(newFile, ByteArrayContent.fromString(SOURCE_MIME, content[0]));
 					//Auto Convert to Google Docs
 					fileRequest.setConvert(true);
+					
 					insertedFile = fileRequest.execute();
+
 					//TODO: Use string resources for different languages support
 					createNotification(fileTitle, "File Uploaded", insertedFile.getId());
 
@@ -309,6 +331,7 @@ public class MainActivity extends Activity {
 		}
 
 	}
+
 
 
 }

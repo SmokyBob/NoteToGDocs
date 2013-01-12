@@ -4,5 +4,6 @@
     <string name="choose_account_title">Select an account</string>
     <string name="selected_account">Selected account</string>
     <string name="summary_preferences">Edit preferences</string>
+    <string name="note_folder_title">Folder on Drive</string>
     
 </resources>
