@@ -102,8 +102,9 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 			}
 		});
 
-		mNoteFolderPreference = this.findPreference("note_folder_preference");
 
+		mNoteFolderPreference = this.findPreference("note_folder_preference");
+		//Get the Folder Preference Summary and replace text with the right Folder Name
 		String folderSummary = mNoteFolderPreference.getSummary().toString();
 		folderSummary=folderSummary.replace("%s", getFolderName());
 		mNoteFolderPreference.setSummary(folderSummary);
@@ -127,7 +128,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 
 		if (preferenceAccount != null) {
 			mAccountPreference.setSummary(preferenceAccount.name);
-			
+
 			mState = STATE_DONE;
 		} else {
 			if (mState == STATE_INITIAL) {
@@ -152,6 +153,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 
 				Log.d("Preferences", "Selected account: " + accountName);
 				if (accountName != null && accountName.length() > 0) {
+					//Account selected, Store the data and initialize objects
 					Account account = mAccountManager.getAccountByName(accountName);
 					setAccount(account);
 					service = getDriveService(credential);
@@ -209,7 +211,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 
 	private class LoadFolderTask extends AsyncTask<String , Integer, FileList> {
 
-		
+
 		@Override
 		protected FileList doInBackground(String... currentFolder) {
 
@@ -220,20 +222,20 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 
 				//Get the list of Folders
 				fList=service.files().list().setQ(qStr).execute();
-				
+
 				if (currentFolder[0]!="root"){
 					//Add the dummy folder to back
 					File flDummy = new File();
 					flDummy.setId("..");
 					flDummy.setTitle("..");
-					
+
 					flDummy.setParents(curDriveFolder.getParents());
-					
+
 					fList.getItems().add(0, flDummy);
-					
+
 				}
 
-				
+
 			} catch (UserRecoverableAuthIOException e) {
 
 				startActivityForResult(e.getIntent(), CHOOSE_ACCOUNT);
@@ -250,17 +252,17 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 
 			pd.dismiss();
 			//Dismiss the notification if exists
-			if (alDialog!=null){
-				if(alDialog.isShowing()){
+			if (alDialog!=null && alDialog.isShowing()){
 
-					try{
-						alDialog.dismiss();
-					} catch(IllegalArgumentException ex){
-						//This exception is thrown when the back button is pressed so the dialog is not really there
-					}
+				try{
+					alDialog.dismiss();
+				} catch(IllegalArgumentException ex){
+					//This exception is thrown when the back button is pressed so the dialog is not really there
 				}
 			}
 
+
+			//TODO: If there are no folder show a dialog
 			//Create the list of folders
 			CharSequence[] items = new CharSequence[result.getItems().size()];
 			int i =0;
@@ -279,7 +281,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 
-					
+
 					File folder= fList.getItems().get(which);
 					if (folder.getId()==".."){
 						//Back Item Selected
@@ -310,26 +312,26 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 					}
 				}
 			});
-			
+
 			alDialogBuild.setCancelable(true);
 			alDialogBuild.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-				
+
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 					//Nothing to Do
-					
+
 				}
 			});
 			alDialogBuild.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-				
+
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					
-					
+
+
 					// Call the Set Folder to store info in the preferences
 					setFolder();
 					alDialog.dismiss();
-					
+
 				}
 			});
 			alDialog=alDialogBuild.show();
@@ -340,7 +342,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 
 
 	private void loadFolderNames(){
-		
+
 		String folderId=mPreferences.getString("note_folder_parent_id","root");
 		//Get the folder list for the selected account 
 		pd = ProgressDialog.show(this,"Folder List Loading","Please Wait...",true,false,null);
@@ -350,33 +352,40 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 
 	private String getFolderName(){
 		if (curDriveFolder==null) {
+			//Set the current folder instance with data from the settings
 			curDriveFolder=new File();
 			curDriveFolder.setId(mPreferences.getString("note_folder_id","root"));
 			curDriveFolder.setTitle(mPreferences.getString("note_folder_name","root"));
-			curDriveFolder.setParents(Arrays.asList(new ParentReference().setId(mPreferences.getString("note_folder_parent_id","root")).setIsRoot(mPreferences.getBoolean("note_folder_parent_isRoot", true))));
+			//Set the parent folder and his 
+			curDriveFolder.setParents(Arrays.asList(new ParentReference()
+			.setId(mPreferences.getString("note_folder_parent_id","root"))
+			.setIsRoot(mPreferences.getBoolean("note_folder_parent_isRoot", true)))
+					);
 		}
-		return mPreferences.getString("note_folder_name","root");
+		return curDriveFolder.getTitle();
 	}
 
 	private void setFolder(){
 
 
 		SharedPreferences.Editor editor =mPreferences.edit();
-
+		//Store the preferences
 		editor.putString("note_folder_name", curDriveFolder.getTitle());
 		editor.putString("note_folder_id", curDriveFolder.getId());
+
 		if (curDriveFolder.getParents().get(0).getIsRoot()){
+			//If the parent folder is root it's simplier to store root as the id instead of the real one
 			editor.putString("note_folder_parent_id", "root");
 			editor.putBoolean("note_folder_parent_isRoot",true);
 		}else{
 			editor.putString("note_folder_parent_id", curDriveFolder.getParents().get(0).getId());
 			editor.putBoolean("note_folder_parent_isRoot", false);
 		}
-			
-		
+
+
 		editor.commit();
 
-
+		//Update the summary
 		mNoteFolderPreference.setSummary("Notes Stored in "+curDriveFolder.getTitle()+" Folder");
 
 	}

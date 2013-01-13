@@ -182,14 +182,17 @@ public class MainActivity extends Activity {
 					(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		}
 
+		//Notification Build Helper
 		NotificationCompat.Builder mBuilder =
 				new NotificationCompat.Builder(this)
 		.setSmallIcon(R.drawable.ic_launcher)
 		.setContentTitle(title)
 		.setContentText(messageText);
 
+		//Check if file id exist = the file was created successfully on Drive
 		if (fileId.length()>0){
 
+			//Create a new intent with the URL of the document; Android will ask the proper App to handle it
 			Intent resultIntent = new Intent(Intent.ACTION_VIEW); 
 			Uri uri = Uri.parse("https://docs.google.com/document/d/"+fileId); 
 			resultIntent.setData(uri);
@@ -203,14 +206,15 @@ public class MainActivity extends Activity {
 							resultIntent,
 							PendingIntent.FLAG_UPDATE_CURRENT
 							);
-
+			//Notify with all means possible (sound/vibration/light)
 			mBuilder.setDefaults(Notification.DEFAULT_ALL);		
+			//Auto clear the notification after it's selected
 			mBuilder.setAutoCancel(true);
+			//Specify the action on tap over the notification
 			mBuilder.setContentIntent(resultPendingIntent);
 		}
 
 		// get the last notification ID from the shared preferences
-
 		int iNotificationCnt;
 
 		iNotificationCnt=settings.getInt("notificationID", 1);
@@ -218,10 +222,10 @@ public class MainActivity extends Activity {
 		// Builds the notification and issues it.
 		mNotifyMgr.notify(iNotificationCnt, mBuilder.build());
 
-		//Increase the notificationID
+		//Increase the notificationID so that the next notification will NOT Update the current
 		iNotificationCnt++;
 
-		//If over 1000 Reset to 1
+		//If over 1000 Reset to 1 
 		if (iNotificationCnt>1000){
 			iNotificationCnt=1;
 		}
@@ -252,10 +256,14 @@ public class MainActivity extends Activity {
 	private void checkCredential() {
 		//Try to get Account Name from previous selection
 		String accountName = settings.getString("accountName", "");
+		//Get an Instance of the credential manager
 		credential = GoogleAccountCredential.usingOAuth2(this, DriveScopes.DRIVE);
 		if (accountName.length()>0) {
+			//Set the account that will be useb by the app
 			credential.setSelectedAccountName(accountName);
+			//Get a Drive Service Instance with the right credential
 			service = getDriveService(credential);
+			//Show the UI
 			setContentView(R.layout.activity_main);
 			isSaved=false;
 		}
@@ -329,8 +337,6 @@ public class MainActivity extends Activity {
 		}
 
 	}
-
-
 
 }
 
