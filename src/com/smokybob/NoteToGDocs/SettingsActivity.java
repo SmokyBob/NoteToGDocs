@@ -1,12 +1,14 @@
 package com.smokybob.NoteToGDocs;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import com.smokybob.NoteToGDocs.R;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,6 +20,9 @@ import android.preference.Preference;
 import android.preference.Preference.*;
 
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
 import com.google.android.gms.auth.GoogleAuthUtil;
@@ -30,6 +35,7 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
+import com.google.api.services.drive.model.ParentReference;
 
 public class SettingsActivity extends SherlockPreferenceActivity {
 
@@ -51,6 +57,9 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 	private AlertDialog alDialog =null;
 	private FileList fList =null;
 	private Drive service=null;
+	private File curDriveFolder;
+	private int selectedItem =-1;
+	private ProgressDialog pd;
 	/**
 	 * Populate the activity with the top-level headers.
 	 */
@@ -103,7 +112,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 
 			@Override
 			public boolean onPreferenceClick(Preference preference) {
-				// TODO Auto-generated method stub
+				// Load the Drive folders
 				loadFolderNames();
 				return false;
 			}
@@ -118,6 +127,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 
 		if (preferenceAccount != null) {
 			mAccountPreference.setSummary(preferenceAccount.name);
+			
 			mState = STATE_DONE;
 		} else {
 			if (mState == STATE_INITIAL) {
@@ -146,7 +156,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 					setAccount(account);
 					service = getDriveService(credential);
 					//Changed Account Set the folder to Root
-					setFolder("root", "root");
+					setFolder();
 				}
 			} else {
 				mState = STATE_INITIAL;
@@ -199,17 +209,31 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 
 	private class LoadFolderTask extends AsyncTask<String , Integer, FileList> {
 
+		
 		@Override
 		protected FileList doInBackground(String... currentFolder) {
 
-
+			selectedItem=-1;
 			try {
 				//Filter for the child folder
 				String qStr = "'"+currentFolder[0]+"' in parents and mimeType = 'application/vnd.google-apps.folder'";
 
 				//Get the list of Folders
 				fList=service.files().list().setQ(qStr).execute();
+				
+				if (currentFolder[0]!="root"){
+					//Add the dummy folder to back
+					File flDummy = new File();
+					flDummy.setId("..");
+					flDummy.setTitle("..");
+					
+					flDummy.setParents(curDriveFolder.getParents());
+					
+					fList.getItems().add(0, flDummy);
+					
+				}
 
+				
 			} catch (UserRecoverableAuthIOException e) {
 
 				startActivityForResult(e.getIntent(), CHOOSE_ACCOUNT);
@@ -224,6 +248,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 		protected void onPostExecute(FileList result) {
 			super.onPostExecute(result);
 
+			pd.dismiss();
 			//Dismiss the notification if exists
 			if (alDialog!=null){
 				if(alDialog.isShowing()){
@@ -248,15 +273,63 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 			}
 
 			//Create the new Dialog
-			alDialogBuild.setItems(items, new DialogInterface.OnClickListener() {
+			alDialogBuild.setTitle("Folder Selection");
+			alDialogBuild.setSingleChoiceItems(items, -1, new DialogInterface.OnClickListener() {
 
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
 
+					
 					File folder= fList.getItems().get(which);
-
+					if (folder.getId()==".."){
+						//Back Item Selected
+						//curDriveFolder
+						//Reload the List with parent folder child items
+						ParentReference parent=folder.getParents().get(0);
+						selectedItem=-1;
+						if (parent.getIsRoot()){
+							pd = ProgressDialog.show(getActivity(),"Folder List Loading","Please Wait...",true,false,null);
+							new LoadFolderTask().execute("root");
+						}
+						else{
+							pd = ProgressDialog.show(getActivity(),"Folder List Loading","Please Wait...",true,false,null);
+							new LoadFolderTask().execute(parent.getId());
+						}
+					}else{
+						//Check if it's the first selection or a second one to enter in subfolder
+						if (which==selectedItem){
+							//Second click to enter sub folder list
+							//Reload the List with sub folders
+							pd = ProgressDialog.show(getActivity(),"Folder List Loading","Please Wait...",true,false,null);
+							new LoadFolderTask().execute(folder.getId());
+						}else{
+							//Store Selection
+							curDriveFolder=folder;
+							selectedItem=which;
+						}
+					}
+				}
+			});
+			
+			alDialogBuild.setCancelable(true);
+			alDialogBuild.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					//Nothing to Do
+					
+				}
+			});
+			alDialogBuild.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+				
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					
+					
 					// Call the Set Folder to store info in the preferences
-					setFolder(folder.getTitle(),folder.getId());
+					setFolder();
+					alDialog.dismiss();
+					
 				}
 			});
 			alDialog=alDialogBuild.show();
@@ -267,28 +340,44 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 
 
 	private void loadFolderNames(){
-
-		String folderId=mPreferences.getString("note_folder_id","root");
+		
+		String folderId=mPreferences.getString("note_folder_parent_id","root");
 		//Get the folder list for the selected account 
+		pd = ProgressDialog.show(this,"Folder List Loading","Please Wait...",true,false,null);
 		new LoadFolderTask().execute(folderId);
 
 	}
 
 	private String getFolderName(){
+		if (curDriveFolder==null) {
+			curDriveFolder=new File();
+			curDriveFolder.setId(mPreferences.getString("note_folder_id","root"));
+			curDriveFolder.setTitle(mPreferences.getString("note_folder_name","root"));
+			curDriveFolder.setParents(Arrays.asList(new ParentReference().setId(mPreferences.getString("note_folder_parent_id","root")).setIsRoot(mPreferences.getBoolean("note_folder_parent_isRoot", true))));
+		}
 		return mPreferences.getString("note_folder_name","root");
 	}
 
-	private void setFolder(String folderName,String folderId){
+	private void setFolder(){
 
 
 		SharedPreferences.Editor editor =mPreferences.edit();
 
-		editor.putString("note_folder_name", folderName);
-		editor.putString("note_folder_id", folderId);
+		editor.putString("note_folder_name", curDriveFolder.getTitle());
+		editor.putString("note_folder_id", curDriveFolder.getId());
+		if (curDriveFolder.getParents().get(0).getIsRoot()){
+			editor.putString("note_folder_parent_id", "root");
+			editor.putBoolean("note_folder_parent_isRoot",true);
+		}else{
+			editor.putString("note_folder_parent_id", curDriveFolder.getParents().get(0).getId());
+			editor.putBoolean("note_folder_parent_isRoot", false);
+		}
+			
+		
 		editor.commit();
 
 
-		mNoteFolderPreference.setSummary("Notes Stored in "+folderName+" Folder");
+		mNoteFolderPreference.setSummary("Notes Stored in "+curDriveFolder.getTitle()+" Folder");
 
 	}
 	private Drive getDriveService(GoogleAccountCredential credential) {

@@ -99,8 +99,6 @@ public class MainActivity extends Activity {
 			toRet= true;
 			break;
 		case R.id.menu_settings:
-			//FIXME: Enable Account Selection and other configurations
-			// https://code.google.com/p/google-drive-sdk-samples/source/browse/android/src/com/example/android/notepad/Preferences.java
 			//Open Settings Activity
 			Intent settings = new Intent(this,SettingsActivity.class);
 			startActivity(settings);
