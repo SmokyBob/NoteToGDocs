@@ -8,6 +8,7 @@ import com.smokybob.NoteToGDocs.R;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -155,9 +156,18 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 				if (accountName != null && accountName.length() > 0) {
 					//Account selected, Store the data and initialize objects
 					Account account = mAccountManager.getAccountByName(accountName);
-					setAccount(account);
 					service = getDriveService(credential);
-					//Changed Account Set the folder to Root
+					setAccount(account);
+
+					//Changed Account; Set the folder to Root
+					curDriveFolder=new File();
+					curDriveFolder.setId("root");
+					curDriveFolder.setTitle("root");
+					//Set the parent folder 
+					curDriveFolder.setParents(Arrays.asList(new ParentReference()
+					.setId("root")
+					.setIsRoot(true)));
+					//Store the new info in the shared file
 					setFolder();
 				}
 			} else {
@@ -193,8 +203,6 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 			//Set the selected credential in the Credential manager
 			credential.setSelectedAccountName(account.name);
 
-			//Load Folder list
-			loadFolderNames();
 			mState = STATE_DONE;
 		}
 	}
@@ -223,7 +231,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 				//Get the list of Folders
 				fList=service.files().list().setQ(qStr).execute();
 
-				if (currentFolder[0]!="root"){
+				if (!currentFolder[0].equals("root")){
 					//Add the dummy folder to back
 					File flDummy = new File();
 					flDummy.setId("..");
@@ -261,81 +269,99 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 				}
 			}
 
+			//If there are no folder show a dialog
+			if (result==null || result.getItems().isEmpty()){
+				if (pd.isShowing())
+					pd.dismiss();
 
-			//TODO: If there are no folder show a dialog
-			//Create the list of folders
-			CharSequence[] items = new CharSequence[result.getItems().size()];
-			int i =0;
+				//Create and Show the Dialog
+				new AlertDialog.Builder(getActivity())
+				.setTitle("Sorry no Drive Folder found on the selected account")
+				.setCancelable(true)
+				.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 
-			//TODO: Sort the folder by name
-			//Add the folder names to the Array
-			for (File fl:result.getItems()){
-				items[i]=fl.getTitle();
-				i++;
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						// Dismiss the dialog on OK
+						dialog.dismiss();
+					}
+				})
+				.show();	
 			}
+			else{
+				//Create the list of folders
+				CharSequence[] items = new CharSequence[result.getItems().size()];
+				int i =0;
 
-			//Create the new Dialog
-			alDialogBuild.setTitle("Folder Selection");
-			alDialogBuild.setSingleChoiceItems(items, -1, new DialogInterface.OnClickListener() {
+				//TODO: Sort the folders by name
+				//Add the folder names to the Array
+				for (File fl:result.getItems()){
+					items[i]=fl.getTitle();
+					i++;
+				}
 
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
+				//Create the new Dialog
+				alDialogBuild.setTitle("Folder Selection");
+				alDialogBuild.setSingleChoiceItems(items, -1, new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
 
 
-					File folder= fList.getItems().get(which);
-					if (folder.getId()==".."){
-						//Back Item Selected
-						//curDriveFolder
-						//Reload the List with parent folder child items
-						ParentReference parent=folder.getParents().get(0);
-						selectedItem=-1;
-						if (parent.getIsRoot()){
-							pd = ProgressDialog.show(getActivity(),"Folder List Loading","Please Wait...",true,false,null);
-							new LoadFolderTask().execute("root");
-						}
-						else{
-							pd = ProgressDialog.show(getActivity(),"Folder List Loading","Please Wait...",true,false,null);
-							new LoadFolderTask().execute(parent.getId());
-						}
-					}else{
-						//Check if it's the first selection or a second one to enter in subfolder
-						if (which==selectedItem){
-							//Second click to enter sub folder list
-							//Reload the List with sub folders
-							pd = ProgressDialog.show(getActivity(),"Folder List Loading","Please Wait...",true,false,null);
-							new LoadFolderTask().execute(folder.getId());
+						File folder= fList.getItems().get(which);
+						if (folder.getId()==".."){
+							//Back Item Selected
+							//curDriveFolder
+							//Reload the List with parent folder child items
+							ParentReference parent=folder.getParents().get(0);
+							selectedItem=-1;
+							if (parent.getIsRoot()){
+								pd = ProgressDialog.show(getActivity(),"Folder List Loading","Please Wait...",true,false,null);
+								new LoadFolderTask().execute("root");
+							}
+							else{
+								pd = ProgressDialog.show(getActivity(),"Folder List Loading","Please Wait...",true,false,null);
+								new LoadFolderTask().execute(parent.getId());
+							}
 						}else{
-							//Store Selection
-							curDriveFolder=folder;
-							selectedItem=which;
+							//Check if it's the first selection or a second one to enter in subfolder
+							if (which==selectedItem){
+								//Second click to enter sub folder list
+								//Reload the List with sub folders
+								pd = ProgressDialog.show(getActivity(),"Folder List Loading","Please Wait...",true,false,null);
+								new LoadFolderTask().execute(folder.getId());
+							}else{
+								//Store Selection
+								curDriveFolder=folder;
+								selectedItem=which;
+							}
 						}
 					}
-				}
-			});
+				});
 
-			alDialogBuild.setCancelable(true);
-			alDialogBuild.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+				alDialogBuild.setCancelable(true);
+				alDialogBuild.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
 
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					//Nothing to Do
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						//Nothing to Do
 
-				}
-			});
-			alDialogBuild.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+					}
+				});
+				alDialogBuild.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
 
 
-					// Call the Set Folder to store info in the preferences
-					setFolder();
-					alDialog.dismiss();
+						// Call the Set Folder to store info in the preferences
+						setFolder();
+						alDialog.dismiss();
 
-				}
-			});
-			alDialog=alDialogBuild.show();
-
+					}
+				});
+				alDialog=alDialogBuild.show();
+			}
 		}
 
 	}
