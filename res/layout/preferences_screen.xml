@@ -11,5 +11,12 @@
     android:key="note_folder_preference" 
     android:title="@string/note_folder_title"
     android:summary="Notes Stored in %s Folder" />
+ 
+ <ListPreference 
+    android:key="title_format_preference" 
+    android:title="@string/title_format"
+    android:entries="@array/title_format_lbl"
+    android:entryValues="@array/title_format_val"
+    android:summary="Name the new note with the selected format before the _Note suffix" />
 
 </PreferenceScreen>

@@ -240,9 +240,10 @@ public class MainActivity extends Activity {
 
 	private String getFileName(){
 		//TODO - From config Get the structure
+		String titleFormat=settings.getString("note_title_format", getString(R.string.title_default_value));
 		String toRet="";
 		//Default YYYYMMDD_HHmmss_Note
-		DateFormat df = new SimpleDateFormat("yyyyMMdd_HHmmss");
+		DateFormat df = new SimpleDateFormat(titleFormat);
 
 		// Get the date today using Calendar object.
 		Date today = Calendar.getInstance().getTime();        

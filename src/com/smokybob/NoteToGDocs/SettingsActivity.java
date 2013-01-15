@@ -52,6 +52,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 	private GoogleAccountCredential credential;
 	private Preference mAccountPreference;
 	private Preference mNoteFolderPreference;
+	private ListPreference mNoteFormatPref;
 	private SharedPreferences mPreferences;
 	private int mState;
 	private AlertDialog.Builder alDialogBuild =null;
@@ -120,6 +121,19 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 			}
 		});
 
+		//Get the Note name Format preferences
+		mNoteFormatPref = (ListPreference) this.findPreference("title_format_preference");
+		mNoteFormatPref.setDefaultValue(mPreferences.getString("note_title_format", getString(R.string.title_default_value)));
+		mNoteFormatPref.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+			@Override
+			public boolean onPreferenceChange(Preference preference, Object newValue) {
+				SharedPreferences.Editor editor =mPreferences.edit();
+				editor.putString("note_title_format", (String) newValue);
+				editor.commit();
+				
+				return true;
+			}
+		});
 	}
 
 	@Override

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="title_format_val">
+        <item>yyyyMMdd_HHmmss</item>
+        <item>dd/MM/yyyy_HH:mm:ss</item>
+        <item>MM/dd/yyyy_HH:mm:ss</item>
+        <item>yyMMdd_HHmm</item>
+    </string-array>
+    <string-array name="title_format_lbl">
+        <item>20131222_160842</item>
+        <item>22/12/2013_16:08:42</item>
+        <item>12/22/2013_16:08:42</item>
+        <item>131222_1608</item>
+    </string-array>
+</resources>

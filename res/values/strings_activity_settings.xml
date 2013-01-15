@@ -6,4 +6,6 @@
     <string name="summary_preferences">Edit preferences</string>
     <string name="note_folder_title">Folder on Drive</string>
     
+    <string name="title_format">Note Naming Formats</string>
+    
 </resources>
