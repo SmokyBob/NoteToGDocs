@@ -1,7 +1,11 @@
 package com.smokybob.NoteToGDocs;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.smokybob.NoteToGDocs.R;
 
@@ -57,7 +61,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 	private int mState;
 	private AlertDialog.Builder alDialogBuild =null;
 	private AlertDialog alDialog =null;
-	private FileList fList =null;
+	private ArrayList<File> sortedFolderList=null;
 	private Drive service=null;
 	private File curDriveFolder;
 	private int selectedItem =-1;
@@ -69,7 +73,6 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 	@Override
 	public Intent getIntent() {
 		final Intent modIntent = new Intent(super.getIntent());
-		//	    modIntent.putExtra(EXTRA_SHOW_FRAGMENT, PreferencesFragment.class.getName());
 		modIntent.putExtra(EXTRA_NO_HEADERS, true);
 		return modIntent;
 	}	    
@@ -84,7 +87,6 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 		mState = STATE_INITIAL;
 
 		mAccountManager = new GoogleAccountManager(getActivity());
-		//		mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		mPreferences =getSharedPreferences(getString( R.string.pref_file_key), 0);
 
 		// Load the preferences from an XML resource
@@ -231,20 +233,38 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 		return mAccountManager.getAccountByName(mPreferences.getString("accountName",""));
 	}
 
-	private class LoadFolderTask extends AsyncTask<String , Integer, FileList> {
+	private class LoadFolderTask extends AsyncTask<String , Integer, ArrayList<File>> {
+		
+		//Comparator for FileList Ordering
+		public class EComparator implements Comparator<File> {
 
+			  public int compare(File o1, File o2) {
+			    return o1.getTitle().compareTo(o2.getTitle());
+			  }
+
+			}
 
 		@Override
-		protected FileList doInBackground(String... currentFolder) {
-
+		protected ArrayList<File> doInBackground(String... currentFolder) {
+			ArrayList<File> toRet=new ArrayList<File>();
 			selectedItem=-1;
 			try {
 				//Filter for the child folder
 				String qStr = "'"+currentFolder[0]+"' in parents and mimeType = 'application/vnd.google-apps.folder'";
 
 				//Get the list of Folders
-				fList=service.files().list().setQ(qStr).execute();
-
+				FileList fList=service.files().list().setQ(qStr).execute();
+				
+				//Create the TreeSet for Ordering
+				SortedSet<File> sorter = new TreeSet<File>(new EComparator());
+				
+				//Add the Files to the Orderer
+				for(File fl:fList.getItems()){
+					sorter.add(fl);
+				}
+				//Save the Array with the ordered Elements
+				toRet.addAll(sorter);
+				
 				if (!currentFolder[0].equals("root")){
 					//Add the dummy folder to back
 					File flDummy = new File();
@@ -253,7 +273,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 
 					flDummy.setParents(curDriveFolder.getParents());
 
-					fList.getItems().add(0, flDummy);
+					toRet.add(0, flDummy);
 
 				}
 
@@ -265,13 +285,13 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 				Log.e("Smokybob", e.getStackTrace().toString());
 				//FIXME: Show a toast for error 
 			}
-			return fList;
+			return toRet;
 		}
 
 		@Override
-		protected void onPostExecute(FileList result) {
+		protected void onPostExecute(ArrayList<File> result) {
 			super.onPostExecute(result);
-
+			sortedFolderList = result;
 			pd.dismiss();
 			//Dismiss the notification if exists
 			if (alDialog!=null && alDialog.isShowing()){
@@ -284,7 +304,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 			}
 
 			//If there are no folder show a dialog
-			if (result==null || result.getItems().isEmpty()){
+			if (result==null || result.isEmpty()){
 				if (pd.isShowing())
 					pd.dismiss();
 
@@ -304,12 +324,11 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 			}
 			else{
 				//Create the list of folders
-				CharSequence[] items = new CharSequence[result.getItems().size()];
+				CharSequence[] items = new CharSequence[result.size()];
 				int i =0;
 
-				//TODO: Sort the folders by name
 				//Add the folder names to the Array
-				for (File fl:result.getItems()){
+				for (File fl:result){
 					items[i]=fl.getTitle();
 					i++;
 				}
@@ -321,8 +340,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 
-
-						File folder= fList.getItems().get(which);
+						File folder= sortedFolderList.get(which);
 						if (folder.getId()==".."){
 							//Back Item Selected
 							//curDriveFolder
