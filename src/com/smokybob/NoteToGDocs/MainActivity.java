@@ -123,6 +123,19 @@ public class MainActivity extends Activity {
 			//        default:
 			//            return super.onOptionsItemSelected(item);
 			break;
+		case R.id.feedback:
+			//Start the intent to write an Email
+			String emailAddress = "notetogdocs@gmail.com";
+			   String emailSubject = "Feedback/Feature Request";
+
+			   String emailAddressList[] = {emailAddress};
+			  
+			   Intent intent = new Intent(Intent.ACTION_SEND); 
+			   intent.setType("plain/text");
+			   intent.putExtra(Intent.EXTRA_EMAIL, emailAddressList);  
+			   intent.putExtra(Intent.EXTRA_SUBJECT, emailSubject); 
+			   startActivity(Intent.createChooser(intent, "Choose the email app to use:"));
+			break;
 		}
 		return toRet;
 	}
