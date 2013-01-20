@@ -19,4 +19,9 @@
     android:entryValues="@array/title_format_val"
     android:summary="Name the new note with the selected format before the _Note suffix" />
 
+ <CheckBoxPreference
+        android:key="first_line_time"
+        android:title="@string/title_first_line"
+        android:summary="If selected the First Line of the note will contain the date and time of creation with the same format selected for the Note name"
+        android:defaultValue="false" />
 </PreferenceScreen>

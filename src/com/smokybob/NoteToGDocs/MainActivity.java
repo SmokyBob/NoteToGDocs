@@ -6,7 +6,6 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
@@ -52,6 +51,7 @@ public class MainActivity extends Activity {
 	private boolean bFromBack=false;
 	private NotificationManager mNotifyMgr;
 	private String folderId;
+	private Boolean firstLineTime;
 
 	private ProgressDialog pd;
 
@@ -68,11 +68,28 @@ public class MainActivity extends Activity {
 		//Load/reload preferences n
 		// Restore preferences
 		settings = getSharedPreferences(getString( R.string.pref_file_key), 0);
-		//Check the Credentials
-		checkCredential();
-
 		//Get the folder Id
 		folderId= settings.getString("note_folder_id","root");
+
+		//Get if the first line is to be set with time
+		firstLineTime=settings.getBoolean("first_line_time", false);
+		if (credential==null){
+			
+
+			//Check the Credentials
+			checkCredential();
+			
+			//If the Credential is null than it's the first start and I need to check 
+			//if I Need the user want the date and time as first line of the note
+			if (firstLineTime){
+				EditText editText1 = (EditText) findViewById(R.id.editText1);
+				String tmp = getFileName().replace("_Note", "");
+				tmp = tmp.replace("_", " ");
+				editText1.setText(tmp);
+			}
+			
+		}
+
 
 	}
 
@@ -239,7 +256,7 @@ public class MainActivity extends Activity {
 	}
 
 	private String getFileName(){
-		//TODO - From config Get the structure
+		//From config Get the structure of the file name
 		String titleFormat=settings.getString("note_title_format", getString(R.string.title_default_value));
 		String toRet="";
 		//Default YYYYMMDD_HHmmss_Note
@@ -256,25 +273,23 @@ public class MainActivity extends Activity {
 
 	private void checkCredential() {
 		//MSO - 20130120 - Reload credential and redraw the Activity only on the first start or if the activity was destroyed
-		if (credential==null){
-			//Try to get Account Name from previous selection
-			String accountName = settings.getString("accountName", "");
-			//Get an Instance of the credential manager
-			credential = GoogleAccountCredential.usingOAuth2(this, DriveScopes.DRIVE);
-			if (accountName.length()>0) {
-				//Set the account that will be useb by the app
-				credential.setSelectedAccountName(accountName);
-				//Get a Drive Service Instance with the right credential
-				service = getDriveService(credential);
-				//Show the UI
-				setContentView(R.layout.activity_main);
-				isSaved=false;
-			}
-			else
-			{
-				//Ask the user for credentials
-				startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
-			}
+		//Try to get Account Name from previous selection
+		String accountName = settings.getString("accountName", "");
+		//Get an Instance of the credential manager
+		credential = GoogleAccountCredential.usingOAuth2(this, DriveScopes.DRIVE);
+		if (accountName.length()>0) {
+			//Set the account that will be useb by the app
+			credential.setSelectedAccountName(accountName);
+			//Get a Drive Service Instance with the right credential
+			service = getDriveService(credential);
+			//Show the UI
+			setContentView(R.layout.activity_main);
+			isSaved=false;
+		}
+		else
+		{
+			//Ask the user for credentials
+			startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
 		}
 	}
 

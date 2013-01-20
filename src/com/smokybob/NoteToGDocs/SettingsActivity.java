@@ -12,7 +12,6 @@ import com.smokybob.NoteToGDocs.R;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -20,15 +19,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.*;
-
 import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
-
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -57,6 +52,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 	private Preference mAccountPreference;
 	private Preference mNoteFolderPreference;
 	private ListPreference mNoteFormatPref;
+	private CheckBoxPreference mFirstLine;
 	private SharedPreferences mPreferences;
 	private int mState;
 	private AlertDialog.Builder alDialogBuild =null;
@@ -131,6 +127,22 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 			public boolean onPreferenceChange(Preference preference, Object newValue) {
 				SharedPreferences.Editor editor =mPreferences.edit();
 				editor.putString("note_title_format", (String) newValue);
+				editor.commit();
+				
+				return true;
+			}
+		});
+		
+		//Get the FirstLine Preference
+		mFirstLine = (CheckBoxPreference)this.findPreference("first_line_time");
+		mFirstLine.setDefaultValue(mPreferences.getBoolean("first_line_time", false));
+		mFirstLine.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
+			
+			@Override
+			public boolean onPreferenceChange(Preference preference, Object newValue) {
+				SharedPreferences.Editor editor =mPreferences.edit();
+				
+				editor.putBoolean("first_line_time", (Boolean) newValue);
 				editor.commit();
 				
 				return true;
