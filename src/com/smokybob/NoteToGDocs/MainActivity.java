@@ -255,23 +255,26 @@ public class MainActivity extends Activity {
 	}
 
 	private void checkCredential() {
-		//Try to get Account Name from previous selection
-		String accountName = settings.getString("accountName", "");
-		//Get an Instance of the credential manager
-		credential = GoogleAccountCredential.usingOAuth2(this, DriveScopes.DRIVE);
-		if (accountName.length()>0) {
-			//Set the account that will be useb by the app
-			credential.setSelectedAccountName(accountName);
-			//Get a Drive Service Instance with the right credential
-			service = getDriveService(credential);
-			//Show the UI
-			setContentView(R.layout.activity_main);
-			isSaved=false;
-		}
-		else
-		{
-			//Ask the user for credentials
-			startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+		//MSO - 20130120 - Reload credential and redraw the Activity only on the first start or if the activity was destroyed
+		if (credential==null){
+			//Try to get Account Name from previous selection
+			String accountName = settings.getString("accountName", "");
+			//Get an Instance of the credential manager
+			credential = GoogleAccountCredential.usingOAuth2(this, DriveScopes.DRIVE);
+			if (accountName.length()>0) {
+				//Set the account that will be useb by the app
+				credential.setSelectedAccountName(accountName);
+				//Get a Drive Service Instance with the right credential
+				service = getDriveService(credential);
+				//Show the UI
+				setContentView(R.layout.activity_main);
+				isSaved=false;
+			}
+			else
+			{
+				//Ask the user for credentials
+				startActivityForResult(credential.newChooseAccountIntent(), REQUEST_ACCOUNT_PICKER);
+			}
 		}
 	}
 
@@ -301,7 +304,7 @@ public class MainActivity extends Activity {
 							.insert(newFile, ByteArrayContent.fromString(SOURCE_MIME, content[0]));
 					//Auto Convert to Google Docs
 					fileRequest.setConvert(true);
-					
+
 					insertedFile = fileRequest.execute();
 
 					//TODO: Use string resources for different languages support
