@@ -12,6 +12,8 @@
     <string name="title_default_value">yyyyMMdd_HHmmss</string>
     <string name="title_first_line">First Line with Day and Time</string>
     <string name="send_feedback">Send Feedback</string>
+	<string name="previous_notes">Previous Notes</string>	
+	
     
 
 </resources>

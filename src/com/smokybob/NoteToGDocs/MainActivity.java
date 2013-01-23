@@ -123,6 +123,9 @@ public class MainActivity extends Activity {
 			//        default:
 			//            return super.onOptionsItemSelected(item);
 			break;
+		case R.id.previous_notes:
+			//TODO: show the waiting dialog and load the files inthe note folder with an async task
+			break;
 		case R.id.feedback:
 			//Start the intent to write an Email
 			String emailAddress = "notetogdocs@gmail.com";

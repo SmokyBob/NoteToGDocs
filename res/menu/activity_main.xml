@@ -19,11 +19,16 @@
         android:showAsAction="ifRoom|withText" 
         android:orderInCategory="2" 
         android:icon="@drawable/ic_action_cancel"></item>
-    <item android:id="@+id/menu_settings" 
-        android:orderInCategory="3" 
+	<item android:id="@+id/previous_notes" 
+        android:orderInCategory="4" 
+        android:showAsAction="never" 
+        android:title="@string/previous_notes" />
+		
+	<item android:id="@+id/menu_settings" 
+        android:orderInCategory="50" 
         android:showAsAction="never" 
         android:title="@string/menu_settings" />
-    <item android:id="@+id/feedback" android:title="@string/send_feedback" android:orderInCategory="4" android:showAsAction="never"></item>
+    <item android:id="@+id/feedback" android:title="@string/send_feedback" android:orderInCategory="100" android:showAsAction="never"></item>
     
 
 </menu>
