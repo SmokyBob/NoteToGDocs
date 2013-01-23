@@ -3,9 +3,13 @@ package com.smokybob.NoteToGDocs;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
@@ -16,6 +20,7 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.Drive.Files.Insert;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
+import com.google.api.services.drive.model.FileList;
 import com.google.api.services.drive.model.ParentReference;
 import com.smokybob.NoteToGDocs.R;
 
@@ -24,10 +29,13 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
@@ -35,6 +43,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -51,9 +60,11 @@ public class MainActivity extends Activity {
 	private boolean bFromBack=false;
 	private NotificationManager mNotifyMgr;
 	private String folderId;
+	private ArrayList<File> sortedNoteList=null;
 	private Boolean firstLineTime;
 
 	private ProgressDialog pd;
+	private AlertDialog.Builder alDialogBuild =null;
 
 
 	@Override
@@ -74,11 +85,11 @@ public class MainActivity extends Activity {
 		//Get if the first line is to be set with time
 		firstLineTime=settings.getBoolean("first_line_time", false);
 		if (credential==null){
-			
+
 
 			//Check the Credentials
 			checkCredential();
-			
+
 			//If the Credential is null than it's the first start and I need to check 
 			//if I Need the user want the date and time as first line of the note
 			if (firstLineTime){
@@ -87,7 +98,7 @@ public class MainActivity extends Activity {
 				tmp = tmp.replace("_", " ");
 				editText1.setText(tmp);
 			}
-			
+
 		}
 
 
@@ -124,20 +135,23 @@ public class MainActivity extends Activity {
 			//            return super.onOptionsItemSelected(item);
 			break;
 		case R.id.previous_notes:
-			//TODO: show the waiting dialog and load the files inthe note folder with an async task
+			//Show the progress Dialog
+			pd = ProgressDialog.show(MainActivity.this,"Note List Loading","Please Wait...",true,false,null);
+			//Load the Note List and show the file selector
+			new NotesListTask().execute(folderId);
 			break;
 		case R.id.feedback:
 			//Start the intent to write an Email
 			String emailAddress = "notetogdocs@gmail.com";
-			   String emailSubject = "Feedback/Feature Request";
+			String emailSubject = "Feedback/Feature Request";
 
-			   String emailAddressList[] = {emailAddress};
-			  
-			   Intent intent = new Intent(Intent.ACTION_SEND); 
-			   intent.setType("plain/text");
-			   intent.putExtra(Intent.EXTRA_EMAIL, emailAddressList);  
-			   intent.putExtra(Intent.EXTRA_SUBJECT, emailSubject); 
-			   startActivity(Intent.createChooser(intent, "Choose the email app to use:"));
+			String emailAddressList[] = {emailAddress};
+
+			Intent intent = new Intent(Intent.ACTION_SEND); 
+			intent.setType("plain/text");
+			intent.putExtra(Intent.EXTRA_EMAIL, emailAddressList);  
+			intent.putExtra(Intent.EXTRA_SUBJECT, emailSubject); 
+			startActivity(Intent.createChooser(intent, "Choose the email app to use:"));
 			break;
 		}
 		return toRet;
@@ -190,6 +204,10 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	private Context getActivity(){
+		return this;
+	}
+
 	private void ClearNote(){
 		//MSO - 20121127 - Clean the text
 		EditText editText1 = (EditText) findViewById(R.id.editText1);
@@ -197,8 +215,10 @@ public class MainActivity extends Activity {
 	}
 	private void UploadNote()
 	{
-		//Show the progress Dialog
-		pd = ProgressDialog.show(MainActivity.this,"Note Upload In Progress","Please Wait...",true,false,null);
+		if (!bFromBack){
+			//Show the progress Dialog
+			pd = ProgressDialog.show(MainActivity.this,"Note Upload In Progress","Please Wait...",true,false,null);
+		}
 		EditText editText1 = (EditText) findViewById(R.id.editText1);
 		new UploadNoteTask().execute(editText1.getText().toString());
 	}
@@ -372,6 +392,180 @@ public class MainActivity extends Activity {
 		}
 
 	}
+
+	private class NotesListTask extends AsyncTask<String , Integer, ArrayList<File>> {
+		private int selected;
+		//Comparator for FileList Ordering
+		public class EComparator implements Comparator<File> {
+
+			public int compare(File o1, File o2) {
+				return o1.getTitle().compareTo(o2.getTitle());
+			}
+
+		}
+
+		@Override
+		protected ArrayList<File> doInBackground(String... currentFolder) {
+			ArrayList<File> toRet=new ArrayList<File>();
+			try {
+				//Filter the folder for documents Only and not trashed
+				String qStr = "'"+currentFolder[0]+"' in parents and mimeType = 'application/vnd.google-apps.document' and trashed=false";
+
+				//Get the list of Folders
+				FileList fList=service.files().list().setQ(qStr).execute();
+
+				//Create the TreeSet for Ordering
+				SortedSet<File> sorter = new TreeSet<File>(new EComparator());
+
+				//Add the Files to the Orderer
+				for(File fl:fList.getItems()){
+					sorter.add(fl);
+				}
+				//Save the Array with the ordered Elements
+				toRet.addAll(sorter);
+
+
+			} catch (UserRecoverableAuthIOException e) {
+				startActivityForResult(e.getIntent(), REQUEST_AUTHORIZATION);
+			} catch (IOException e) {
+				Log.e("Smokybob", e.getStackTrace().toString());
+				//FIXME: Show a toast for error 
+			}
+			return toRet;
+		}
+
+		@Override
+		protected void onPostExecute(ArrayList<File> result) {
+			super.onPostExecute(result);
+			sortedNoteList = result;
+			pd.dismiss();
+
+			createNoteDialog();
+
+		}
+
+		private void deleteNote(File note){
+			AsyncTask<File , Integer, Boolean> t= new AsyncTask<File, Integer, Boolean>(){
+
+				@Override
+				protected Boolean doInBackground(File... params) {
+					Boolean toRet=false;
+					try {
+						//Trash the File on Drive
+						service.files().trash(params[0].getId()).execute();
+						//Remove the File From the Sorted List
+						sortedNoteList.remove(params[0]);
+
+						toRet=true;
+
+					} catch (UserRecoverableAuthIOException e) {
+						startActivityForResult(e.getIntent(), REQUEST_AUTHORIZATION);
+					} catch (IOException e) {
+						Log.e("Smokybob", e.getStackTrace().toString());
+						toRet=false;
+					}
+					return toRet;
+				}
+
+				@Override
+				protected void onPostExecute(Boolean result) {
+					super.onPostExecute(result);
+
+					if(result){
+						Toast.makeText(getActivity(), "File Trashed", Toast.LENGTH_SHORT).show();
+					}else{
+						Toast.makeText(getActivity(), "File NOT Trashed", Toast.LENGTH_SHORT).show();
+					}
+
+					pd.dismiss();
+					createNoteDialog();
+				}
+
+			}.execute(note);
+
+
+		}
+
+		private void createNoteDialog(){
+			//If there are no file show a dialog
+			if (sortedNoteList==null || sortedNoteList.isEmpty()){
+
+				//Create and Show the Dialog
+				new AlertDialog.Builder(getActivity())
+				.setTitle("Sorry no Note found in the selected Folder")
+				.setCancelable(true)
+				.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						// Dismiss the dialog on OK
+						dialog.dismiss();
+					}
+				})
+				.show();	
+			}
+			else{
+
+				//Create the list of Notes
+				CharSequence[] items = new CharSequence[sortedNoteList.size()];
+				int i =0;
+
+				//Add the folder names to the Array
+				for (File fl:sortedNoteList){
+					items[i]=fl.getTitle();
+					i++;
+				}
+
+				//Create the new Dialog
+				alDialogBuild = new AlertDialog.Builder(getActivity());
+				alDialogBuild.setTitle("Folder Selection");
+
+				alDialogBuild.setSingleChoiceItems(items,-1, new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						//Remember the selection
+						selected=which;
+
+					}
+				});
+				alDialogBuild.setCancelable(true);
+				alDialogBuild.setPositiveButton("Open", new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						File note= sortedNoteList.get(selected);
+						//Create a new intent with the URL of the document; Android will ask the proper App to handle it
+						Intent resultIntent = new Intent(Intent.ACTION_VIEW); 
+						Uri uri = Uri.parse("https://docs.google.com/document/d/"+note.getId()); 
+						resultIntent.setData(uri);
+
+						startActivity(resultIntent);
+
+						dialog.dismiss();
+
+					}
+				});
+				alDialogBuild.setNegativeButton("Trash", new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						dialog.dismiss();
+						pd.dismiss();
+						pd = ProgressDialog.show(getActivity(),"Trashing Note in Progress","Please Wait...",true,false,null);
+						deleteNote(sortedNoteList.get(selected));
+
+
+					}
+				});
+
+
+				alDialogBuild.show();
+			}
+		}
+	}
+
+
 
 }
 
