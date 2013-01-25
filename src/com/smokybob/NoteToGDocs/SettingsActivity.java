@@ -24,6 +24,8 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.Preference.*;
 import android.util.Log;
+import android.widget.Toast;
+
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -295,7 +297,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 				startActivityForResult(e.getIntent(), CHOOSE_ACCOUNT);
 			} catch (IOException e) {
 				Log.e("Smokybob", e.getStackTrace().toString());
-				//FIXME: Show a toast for error 
+				Toast.makeText(getActivity(), "Error in Loading the Folders, Try Again", Toast.LENGTH_SHORT).show();
 			}
 			return toRet;
 		}

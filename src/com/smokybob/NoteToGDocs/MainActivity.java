@@ -429,7 +429,7 @@ public class MainActivity extends Activity {
 				startActivityForResult(e.getIntent(), REQUEST_AUTHORIZATION);
 			} catch (IOException e) {
 				Log.e("Smokybob", e.getStackTrace().toString());
-				//FIXME: Show a toast for error 
+				Toast.makeText(getActivity(), "Error in Loading the Documents, Try Again", Toast.LENGTH_SHORT).show();
 			}
 			return toRet;
 		}
@@ -492,7 +492,7 @@ public class MainActivity extends Activity {
 
 				//Create and Show the Dialog
 				new AlertDialog.Builder(getActivity())
-				.setTitle("Sorry no Note found in the selected Folder")
+				.setTitle("Sorry No Note found in the selected Folder")
 				.setCancelable(true)
 				.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 
