@@ -40,6 +40,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
@@ -76,6 +77,7 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onStart() {
 		super.onStart();
+		
 		//Load/reload preferences n
 		// Restore preferences
 		settings = getSharedPreferences(getString( R.string.pref_file_key), 0);
@@ -135,10 +137,18 @@ public class MainActivity extends Activity {
 			//            return super.onOptionsItemSelected(item);
 			break;
 		case R.id.previous_notes:
-			//Show the progress Dialog
-			pd = ProgressDialog.show(MainActivity.this,"Note List Loading","Please Wait...",true,false,null);
-			//Load the Note List and show the file selector
-			new NotesListTask().execute(folderId);
+			if (Util.CheckNetwork(this)){
+				//Show the progress Dialog
+				pd = ProgressDialog.show(MainActivity.this,"Note List Loading","Please Wait...",true,false,null);
+				//Load the Note List and show the file selector
+				new NotesListTask().execute(folderId);
+			}else
+			{
+				//Show a Toast for no network connection
+				Toast.makeText(this, getString(R.string.no_network),Toast.LENGTH_SHORT).show();
+		        
+			}
+			
 			break;
 		case R.id.feedback:
 			//Start the intent to write an Email
@@ -215,12 +225,21 @@ public class MainActivity extends Activity {
 	}
 	private void UploadNote()
 	{
-		if (!bFromBack){
-			//Show the progress Dialog
-			pd = ProgressDialog.show(MainActivity.this,"Note Upload In Progress","Please Wait...",true,false,null);
+		//TODO: For Future Release - Save the note and let the Service do the upload
+		//Check if network is connected otherwise show a toast
+		if (Util.CheckNetwork(this)){
+			if (!bFromBack){
+				//Show the progress Dialog
+				pd = ProgressDialog.show(MainActivity.this,"Note Upload In Progress","Please Wait...",true,false,null);
+			}
+			EditText editText1 = (EditText) findViewById(R.id.editText1);
+			new UploadNoteTask().execute(editText1.getText().toString());
+		}else
+		{
+			//Show a Toast for no network connection
+			Toast.makeText(this, getString(R.string.no_network),Toast.LENGTH_SHORT).show();
+	        
 		}
-		EditText editText1 = (EditText) findViewById(R.id.editText1);
-		new UploadNoteTask().execute(editText1.getText().toString());
 	}
 
 	private Drive getDriveService(GoogleAccountCredential credential) {
@@ -518,7 +537,7 @@ public class MainActivity extends Activity {
 
 				//Create the new Dialog
 				alDialogBuild = new AlertDialog.Builder(getActivity());
-				alDialogBuild.setTitle("Folder Selection");
+				alDialogBuild.setTitle("Previous Note Selection");
 
 				alDialogBuild.setSingleChoiceItems(items,-1, new DialogInterface.OnClickListener() {
 

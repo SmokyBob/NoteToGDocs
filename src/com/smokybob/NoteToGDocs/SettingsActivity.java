@@ -79,6 +79,7 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 		return this;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -415,10 +416,16 @@ public class SettingsActivity extends SherlockPreferenceActivity {
 
 	private void loadFolderNames(){
 
-		String folderId=mPreferences.getString("note_folder_parent_id","root");
-		//Get the folder list for the selected account 
-		pd = ProgressDialog.show(this,"Folder List Loading","Please Wait...",true,false,null);
-		new LoadFolderTask().execute(folderId);
+		if (Util.CheckNetwork(this)){
+			String folderId=mPreferences.getString("note_folder_parent_id","root");
+			//Get the folder list for the selected account 
+			pd = ProgressDialog.show(this,"Folder List Loading","Please Wait...",true,false,null);
+			new LoadFolderTask().execute(folderId);
+		}else
+		{
+			//Show a Toast for no network connection
+			Toast.makeText(this, getString(R.string.no_network),Toast.LENGTH_SHORT).show();
+		}
 
 	}
 
