@@ -28,6 +28,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.accounts.AccountManager;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Notification;
@@ -40,7 +41,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
@@ -310,6 +310,7 @@ public class MainActivity extends Activity {
 
 	}
 
+	@SuppressLint("SimpleDateFormat")
 	private String getFileName(){
 		//From config Get the structure of the file name
 		String titleFormat=settings.getString("note_title_format", getString(R.string.title_default_value));
@@ -464,7 +465,7 @@ public class MainActivity extends Activity {
 		}
 
 		private void deleteNote(File note){
-			AsyncTask<File , Integer, Boolean> t= new AsyncTask<File, Integer, Boolean>(){
+			new AsyncTask<File, Integer, Boolean>(){
 
 				@Override
 				protected Boolean doInBackground(File... params) {
