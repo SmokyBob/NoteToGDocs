@@ -16,7 +16,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="generator" content="Polymer Starter Kit" />
-  <title>Polymer Starter Kit</title>
+  <title>Note To Gdocs</title>
   <!-- Place favicon.ico in the `app/` directory -->
 
   <!-- Chrome for Android theme color -->
@@ -59,40 +59,40 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <span id="browser-sync-binding"></span>
   <template is="dom-bind" id="app">
 
-    <paper-drawer-panel id="paperDrawerPanel">
-      <!-- Drawer Scroll Header Panel -->
-      <paper-scroll-header-panel drawer fixed>
+    <!--<paper-drawer-panel id="paperDrawerPanel">-->
+      <!--Drawer Scroll Header Panel -->
+      <!--<paper-scroll-header-panel drawer fixed>-->
 
         <!-- Drawer Toolbar -->
-        <paper-toolbar id="drawerToolbar">
-          <span class="paper-font-title">Menu</span>
-        </paper-toolbar>
+      <!--  <paper-toolbar id="drawerToolbar">-->
+      <!--    <span class="paper-font-title">Menu</span>-->
+      <!--  </paper-toolbar>-->
 
         <!-- Drawer Content -->
-        <paper-menu class="list" attr-for-selected="data-route" selected="[[route]]">
-          <a data-route="home" href="/" on-click="onDataRouteClick">
-            <iron-icon icon="home"></iron-icon>
-            <span>Home</span>
-          </a>
+      <!--  <paper-menu class="list" attr-for-selected="data-route" selected="[[route]]">-->
+      <!--    <a data-route="home" href="/" on-click="onDataRouteClick">-->
+      <!--      <iron-icon icon="home"></iron-icon>-->
+      <!--      <span>Home</span>-->
+      <!--    </a>-->
 
-          <a data-route="users" href="/users" on-click="onDataRouteClick">
-            <iron-icon icon="info"></iron-icon>
-            <span>Users</span>
-          </a>
+      <!--    <a data-route="users" href="/users" on-click="onDataRouteClick">-->
+      <!--      <iron-icon icon="info"></iron-icon>-->
+      <!--      <span>Users</span>-->
+      <!--    </a>-->
 
-          <a data-route="contact" href="/contact" on-click="onDataRouteClick">
-            <iron-icon icon="mail"></iron-icon>
-            <span>Contact</span>
-          </a>
-        </paper-menu>
-      </paper-scroll-header-panel>
+      <!--    <a data-route="contact" href="/contact" on-click="onDataRouteClick">-->
+      <!--      <iron-icon icon="mail"></iron-icon>-->
+      <!--      <span>Contact</span>-->
+      <!--    </a>-->
+      <!--  </paper-menu>-->
+      <!--</paper-scroll-header-panel>-->
 
       <!-- Main Area -->
       <paper-scroll-header-panel main condenses keep-condensed-header>
 
         <!-- Main Toolbar -->
         <paper-toolbar id="mainToolbar" class="tall">
-          <paper-icon-button id="paperToggle" icon="menu" paper-drawer-toggle></paper-icon-button>
+          <!--<paper-icon-button id="paperToggle" icon="menu" paper-drawer-toggle></paper-icon-button>-->
           <span class="flex"></span>
 
           <!-- Toolbar icons -->
@@ -101,13 +101,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
           <!-- Application name -->
           <div class="middle middle-container center horizontal layout">
-            <div class="app-name">Polymer Starter Kit</div>
+            <div class="app-name">Note To Gdocs</div>
           </div>
 
           <!-- Application sub title -->
-          <div class="bottom bottom-container center horizontal layout">
-            <div class="bottom-title paper-font-subhead">The future of the web today</div>
-          </div>
+          <!--<div class="bottom bottom-container center horizontal layout">-->
+          <!--  <div class="bottom-title paper-font-subhead">The future of the web today</div>-->
+          <!--</div>-->
 
         </paper-toolbar>
 
@@ -176,10 +176,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </iron-pages>
         </div>
       </paper-scroll-header-panel>
-    </paper-drawer-panel>
+    <!--</paper-drawer-panel>-->
 
     <!-- Uncomment next block to enable Service Worker support (1/2) -->
-    <!--
+    
     <paper-toast id="caching-complete"
                  duration="6000"
                  text="Caching complete! This app will work offline.">
@@ -193,7 +193,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
                          cache-config-file="cache-config.json">
       </platinum-sw-cache>
     </platinum-sw-register>
-    -->
 
   </template>
 
