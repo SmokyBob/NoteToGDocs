@@ -23,7 +23,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
   :root {
     --dark-primary-color: #303F9F;
-    --default-primary-color: #3F51B5;
+    --default-primary-color: #212121;
     --light-primary-color: #C5CAE9;
     --text-primary-color: #ffffff; /*text/icons*/
     --accent-color: #FF4081;
@@ -62,7 +62,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     height: 100%;
     padding: 16px 0 16px 0;
     width: calc(98.66% - 16px);
-    margin: 16px auto;
     background: white;
   }
 
@@ -96,18 +95,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     min-height: 48px;
     padding: 0 16px;
   }
-
-  paper-toolbar.tall .app-name {
-    font-size: 40px;
-    font-weight: 300;
+  
+  paper-toolbar .app-name {
+    font-size: 36px;
     /* Required for main area's paper-scroll-header-panel custom condensing transformation */
     -webkit-transform-origin: left center;
     transform-origin: left center;
+    color: #ffffff;
+    text-decoration: none;
   }
 
   #mainToolbar .middle-container  {
     height: 100%;
-    margin-left: 48px;
   }
 
   #mainToolbar:not(.tall) .middle {
@@ -116,15 +115,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   }
 
   #mainToolbar .bottom {
-    margin-left: 48px;
     /* Required for main area's paper-scroll-header-panel custom condensing transformation */
     -webkit-transform-origin: left center;
     transform-origin: left center;
-  }
-
-  /* Height of the scroll area */
-  .content {
-    height: 900px;
   }
 
   /* Breakpoints */
@@ -134,7 +127,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     paper-material {
       --menu-container-display: none;
-      width: calc(97.33% - 32px);
       padding-left: 16px;
       padding-right: 16px;
     }
@@ -166,18 +158,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   @media (min-width: 601px) {
 
     paper-material {
-      width: calc(98% - 46px);
-      margin-bottom: 32px;
-      padding-left: 30px;
-      padding-right: 30px;
+      padding-left: 16px;
+      padding-right: 16px;
     }
 
     #drawer.paper-drawer-panel > [drawer] {
       border-right: 1px solid rgba(0, 0, 0, 0.14);
-    }
-
-    iron-pages {
-      padding: 48px 62px;
     }
 
   }
