@@ -2,7 +2,7 @@
   "name": "polymer-starter-kit",
   "private": true,
   "dependencies": {
-    "polymer": "Polymer/polymer#^1.1.0",
+    "polymer": "Polymer/polymer#master",
     "iron-elements": "PolymerElements/iron-elements#^1.0.3",
     "paper-elements": "PolymerElements/paper-elements#^1.0.4",
     "platinum-elements": "PolymerElements/platinum-elements#^1.1.1",
@@ -12,5 +12,8 @@
   "devDependencies": {
     "web-component-tester": "*",
     "test-fixture": "PolymerElements/test-fixture#^1.0.0"
+  },
+  "resolutions": {
+    "polymer": "master"
   }
 }
