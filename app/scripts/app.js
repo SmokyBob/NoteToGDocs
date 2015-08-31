@@ -65,5 +65,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       drawerPanel.closeDrawer();
     }
   };
+  
+  app._updateUser = function(event) {
+    console.log("user logged in");
+    
+    var signedIn = event.detail.value;
+    if (!signedIn) {
+      this.user = null;
+      return;
+    }
+    var profile = gapi.auth2.getAuthInstance()
+                  .currentUser.get().getBasicProfile();
+    this.user = {
+      name: profile.getName(),
+      image: profile.getImageUrl()
+    };
+  };
+  
+  app._clearNote = function() {
+    app.$.textArea.textarea.value='';
+  };
 
 })(document);
