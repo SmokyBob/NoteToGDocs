@@ -2,14 +2,14 @@
   "name": "polymer-starter-kit",
   "private": true,
   "dependencies": {
-    "polymer": "Polymer/polymer#master",
+    "discovery-api-elements": "Scarygami/discovery-api-elements#~0.3.2",
+    "google-signin": "GoogleWebComponents/google-signin#~1.0.3",
     "iron-elements": "PolymerElements/iron-elements#^1.0.3",
-    "paper-elements": "PolymerElements/paper-elements#^1.0.4",
-    "platinum-elements": "PolymerElements/platinum-elements#^1.1.1",
     "neon-elements": "PolymerElements/neon-elements#^1.0.0",
     "page": "visionmedia/page.js#~1.6.3",
-    "google-signin": "GoogleWebComponents/google-signin#~1.0.3",
-    "discovery-api-elements": "Scarygami/discovery-api-elements#~0.3.1"
+    "paper-elements": "PolymerElements/paper-elements#^1.0.4",
+    "platinum-elements": "PolymerElements/platinum-elements#^1.1.1",
+    "polymer": "Polymer/polymer#master"
   },
   "devDependencies": {
     "web-component-tester": "*",
